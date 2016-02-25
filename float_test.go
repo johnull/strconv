@@ -81,22 +81,18 @@ func TestAppendFloatStress(t *testing.T) {
 }
 
 func BenchmarkFloatToBytes1(b *testing.B) {
-	n := 0
-	r := []byte{}
-	f := 1.2e3
+	r := []byte{} //make([]byte, 10)
+	f := 123.456
 	for i := 0; i < b.N; i++ {
-		r = strconv.AppendFloat(r[:0], f, 'f', -1, 32)
-		n += len(r)
+		r = strconv.AppendFloat(r[:0], f, 'f', -1, 64)
 	}
 }
 
 func BenchmarkFloatToBytes2(b *testing.B) {
-	n := 0
-	r := []byte{}
-	f := 1.2e3
+	r := make([]byte, 10)
+	f := 123.456
 	for i := 0; i < b.N; i++ {
 		r, _ = AppendFloat(r[:0], f, 6)
-		n += len(r)
 	}
 }
 

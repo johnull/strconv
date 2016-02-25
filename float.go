@@ -144,7 +144,8 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 			b[j] = '.'
 			j--
 		}
-		digit := mant % 10
+		newMant := mant / 10
+		digit := mant - 10*newMant
 		if zero && digit > 0 {
 			// first non-zero digit, if we are still behind the dot we can trim the end to this position
 			// otherwise trim to the dot (including the dot)
@@ -169,28 +170,24 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 		}
 		b[j] = '0' + byte(digit)
 		j--
-		mant /= 10
+		mant = newMant
 	}
 
-	// handle 0.1
-	if j == dot {
-		b[j] = '.'
-		j--
-	}
-
-	// extra zeros between dot and first digit
 	if j > dot+1 {
+		// extra zeros behind the dot
 		for j > dot {
 			b[j] = '0'
 			j--
 		}
 		b[j] = '.'
-	}
-
-	// add positive exponent because we have 3 or more zeros before the dot
-	if last+3 < dot {
+	} else if last+3 < dot {
+		// add positive exponent because we have 3 or more zeros in front of the dot
 		i = last + 1
 		exp = dot - last - 1
+	} else if j == dot {
+		// handle 0.1
+		b[j] = '.'
+		j--
 	}
 
 	// exponent
