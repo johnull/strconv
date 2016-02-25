@@ -202,10 +202,13 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 			i++
 			exp = -exp
 		}
-		for exp > 0 {
+		if exp >= 10 {
+			b[i+1] = '0' + byte(exp%10)
+			b[i] = '0' + byte(exp/10)
+			i += 2
+		} else {
 			b[i] = '0' + byte(exp%10)
 			i++
-			exp /= 10
 		}
 	}
 	return b[:i], true

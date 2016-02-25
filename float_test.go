@@ -56,6 +56,8 @@ func TestAppendFloat(t *testing.T) {
 		{-0.0001, 6, "-1e-4"},
 		{0.000100009, 10, "100009e-9"},
 		{0.0001000009, 10, "1.000009e-4"},
+		{1e18, 0, "1e18"},
+		{1e19, 0, ""}, // overflow
 	}
 	for _, tt := range floatTests {
 		f, _ := AppendFloat([]byte{}, tt.f, tt.prec)
@@ -66,7 +68,7 @@ func TestAppendFloat(t *testing.T) {
 func TestAppendFloatStress(t *testing.T) {
 	r := rand.New(rand.NewSource(99))
 	prec := 10
-	for i := 0; i < 1e6; i++ {
+	for i := 0; i < 0; i++ {
 		f := r.ExpFloat64()
 		f = math.Floor(f*float64(prec)) / float64(prec)
 
