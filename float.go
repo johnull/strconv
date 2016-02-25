@@ -1,9 +1,6 @@
 package strconv
 
-import (
-	"math"
-	"strconv"
-)
+import "math"
 
 var float64pow10 = []float64{
 	1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
@@ -81,65 +78,135 @@ func ParseFloat(b []byte) (float64, bool) {
 	return f * math.Pow10(int(expExp)), true
 }
 
-const prec64 = 1e18                    // 2^63 = 10^18.96...
-const minLen = 1 + 18 + 1 + 18 + 1 + 2 // minus + whole + point + fractional + e + exponent
-
-func FormatFloat(b []byte, f float64) []byte {
-	b = b[:0]
-	// take slow path for really small or large numbers, NaN and Inf
-	if !(f > -prec64 && f < prec64) {
-		return strconv.AppendFloat(b, f, 'g', -1, 64)
+func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
+	neg := false
+	if f < 0.0 {
+		f = -f
+		neg = true
+	}
+	if prec >= len(float64pow10) {
+		return b, false
+	}
+	f *= float64pow10[prec]
+	if f >= float64(math.MaxInt64) {
+		return b, false
 	}
 
-	// neg := false
-	// if f < 0 {
-	// 	f = -f
-	// 	neg = true
-	// }
-
-	whole := int64(f)
-	frac := uint64((f - float64(whole)) * prec64)
-
-	if whole == 0 && frac == 0 {
-		b = append(b, '0')
-		return b[:1]
+	// calculate mantissa and exponent
+	mant := int64(f)
+	mantLen := LenInt(mant)
+	mantExp := mantLen - prec - 1
+	if mant == 0 {
+		return append(b, '0'), true
 	}
 
-	wholeLen := LenInt(whole)
-	maxLen := 1 + wholeLen + 1 + 18 + 1 + 2
+	// expLen is zero for positive exponents, because positive exponents are determined later on in the big conversion loop
+	exp := 0
+	expLen := 0
+	if mantExp < -3 {
+		exp = mantExp
+		mantExp = 0
+		expLen = 3      // e + minus + digit
+		if exp <= -10 { // exp is never lower than -18
+			expLen++
+		}
+	} else if mantExp < -1 {
+		mantLen += -mantExp - 1 // extra zero between dot and first digit
+	}
 
-	i := 0
-	if cap(b) < maxLen {
-		b = make([]byte, maxLen)
-		//fmt.Println(cap(b))
+	// reserve space in b
+	i := len(b)
+	maxLen := 1 + mantLen + expLen // dot + mantissa digits + exponent
+	if neg {
+		maxLen++
+	}
+	if i+maxLen > cap(b) {
+		b = append(b, make([]byte, maxLen)...)
 	} else {
-		b = b[:maxLen]
+		b = b[:i+maxLen]
 	}
 
-	j := i + wholeLen
-	for whole > 0 {
-		j--
-		b[j] = '0' + byte(whole%10)
-		whole /= 10
+	// write to string representation
+	if neg {
+		b[i] = '-'
+		i++
 	}
-	i += wholeLen
 
-	if frac > 0 {
-		b[i] = '.'
-		i += 19
-		j = i
-		foundNonZero := false
-		for frac > 0 {
-			digit := frac % 10
-			if !foundNonZero && digit > 0 {
-				i = j
-				foundNonZero = true
-			}
+	// big conversion loop, start at the end and move to the front
+	// initially print trailing zeros and remove them later on
+	// for example if the first non-zero digit is three positions in front of the dot, it will overwrite the zeros with a positive exponent
+	zero := true
+	last := i + mantLen      // right-most position of digit that is non-zero
+	dot := last - prec - exp // position of dot
+	j := last
+	for mant > 0 {
+		if j == dot {
+			b[j] = '.'
 			j--
-			b[j] = '0' + byte(digit)
-			frac /= 10
+		}
+		digit := mant % 10
+		if zero && digit > 0 {
+			// first non-zero digit, if we are still behind the dot we can trim the end to this position
+			// otherwise trim to the dot (including the dot)
+			if j > dot {
+				i = j + 1
+				// decrease negative exponent further to get rid of dot
+				if exp < 0 {
+					relExp := j - dot
+					// getting rid of the dot shouldn't lower exponent to two digits, unless it's already two digits
+					if exp-relExp > -10 || exp <= -10 { // exp is never lower than -18
+						exp -= relExp
+						dot = j
+						j--
+						i--
+					}
+				}
+			} else {
+				i = dot
+			}
+			last = j
+			zero = false
+		}
+		b[j] = '0' + byte(digit)
+		j--
+		mant /= 10
+	}
+
+	// handle 0.1
+	if j == dot {
+		b[j] = '.'
+		j--
+	}
+
+	// extra zeros between dot and first digit
+	if j > dot+1 {
+		for j > dot {
+			b[j] = '0'
+			j--
+		}
+		b[j] = '.'
+	}
+
+	// add positive exponent because we have 3 or more zeros before the dot
+	if last+3 < dot {
+		i = last + 1
+		exp = dot - last - 1
+	}
+
+	// exponent
+	if exp != 0 {
+		b[i] = 'e'
+		i++
+		if exp < 0 {
+			b[i] = '-'
+			i++
+			exp = -exp
+		}
+		for exp > 0 {
+			b[i] = '0' + byte(exp%10)
+			i++
+			exp /= 10
 		}
 	}
-
-	return b[:i]
+	return b[:i], true
 }
