@@ -30,7 +30,7 @@ func Int(b []byte) (int64, bool) {
 	return int64(n), true
 }
 
-func IntLen(i int64) int {
+func LenInt(i int64) int {
 	if i < 0 {
 		i = -i
 	}

@@ -13,7 +13,7 @@ var float64pow10 = []float64{
 
 // Float parses a byte-slice and returns the float it represents.
 // If an invalid character is encountered, it will stop there.
-func Float(b []byte) (float64, bool) {
+func ParseFloat(b []byte) (float64, bool) {
 	i := 0
 	neg := false
 	if i < len(b) && (b[i] == '+' || b[i] == '-') {
@@ -84,36 +84,31 @@ func Float(b []byte) (float64, bool) {
 const prec64 = 1e18                    // 2^63 = 10^18.96...
 const minLen = 1 + 18 + 1 + 18 + 1 + 2 // minus + whole + point + fractional + e + exponent
 
-func FloatToByte(f float64, b []byte) []byte {
+func FormatFloat(b []byte, f float64) []byte {
+	b = b[:0]
 	// take slow path for really small or large numbers, NaN and Inf
 	if !(f > -prec64 && f < prec64) {
-		return strconv.AppendFloat(b[:0], f, 'g', -1, 64)
+		return strconv.AppendFloat(b, f, 'g', -1, 64)
 	}
 
-	i := 0
-	if f < 0 {
-		f = -f
-		b[i] = '-'
-		i++
-	}
+	// neg := false
+	// if f < 0 {
+	// 	f = -f
+	// 	neg = true
+	// }
 
 	whole := int64(f)
-	diff := f - float64(whole)
-	fracf := diff * prec64
-	frac := uint64(fracf)
-	//fmt.Println(whole, frac)
+	frac := uint64((f - float64(whole)) * prec64)
+
 	if whole == 0 && frac == 0 {
-		if cap(b) > 0 {
-			b[0] = '0'
-		} else {
-			b = []byte("0")
-		}
+		b = append(b, '0')
 		return b[:1]
 	}
 
-	wholeLen := lenInt64(whole)
+	wholeLen := LenInt(whole)
 	maxLen := 1 + wholeLen + 1 + 18 + 1 + 2
 
+	i := 0
 	if cap(b) < maxLen {
 		b = make([]byte, maxLen)
 		//fmt.Println(cap(b))

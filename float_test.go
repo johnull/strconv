@@ -1,6 +1,7 @@
 package strconv
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,7 @@ func assertFloat(t *testing.T, s string, ef float64) {
 }
 
 func assertAppendFloat(t *testing.T, f float64, es string) {
-	b := AppendFloat(f, make([]byte, 100))
+	b := AppendFloat(make([]byte, 100), f)
 	assert.Equal(t, es, string(b), "must match float to "+es)
 }
 
@@ -32,4 +33,24 @@ func TestParseFloat(t *testing.T) {
 
 func TestAppendFloat(t *testing.T) {
 	assertAppendFloat(t, 1.2e3, "1.2e3")
+}
+
+func BenchmarkFloatToBytes1(b *testing.B) {
+	n := 0
+	r := []byte{}
+	f := 1.2e3
+	for i := 0; i < b.N; i++ {
+		r = strconv.AppendFloat(r[:0], f, 'f', -1, 32)
+		n += len(r)
+	}
+}
+
+func BenchmarkFloatToBytes2(b *testing.B) {
+	n := 0
+	r := []byte{}
+	f := 1.2e3
+	for i := 0; i < b.N; i++ {
+		r = AppendFloat(r[:0], f)
+		n += len(r)
+	}
 }
