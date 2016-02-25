@@ -84,7 +84,7 @@ func BenchmarkFloatToBytes1(b *testing.B) {
 	r := []byte{} //make([]byte, 10)
 	f := 123.456
 	for i := 0; i < b.N; i++ {
-		r = strconv.AppendFloat(r[:0], f, 'f', -1, 64)
+		r = strconv.AppendFloat(r[:0], f, 'g', 6, 64)
 	}
 }
 
