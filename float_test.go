@@ -41,8 +41,12 @@ func TestAppendFloat(t *testing.T) {
 	}{
 		{0, 6, "0"},
 		{1, 6, "1"},
+		{9, 6, "9"},
+		{9.99999, 6, "9.99999"},
 		{123, 6, "123"},
 		{0.123456, 6, ".123456"},
+		{0.066, 6, ".066"},
+		{0.0066, 6, ".0066"},
 		{12e2, 6, "1200"},
 		{12e3, 6, "12e3"},
 		{0.1, 6, ".1"},
@@ -57,26 +61,45 @@ func TestAppendFloat(t *testing.T) {
 		{0.000100009, 10, "100009e-9"},
 		{0.0001000009, 10, "1.000009e-4"},
 		{1e18, 0, "1e18"},
-		{1e19, 0, ""}, // overflow
+		//{1e19, 0, "1e19"},
+		//{1e19, 18, "1e19"},
+		{1e1, 0, "10"},
+		{1e2, 1, "100"},
+		{1e3, 2, "1e3"},
+		{1e10, -1, "1e10"},
+		{1e15, -1, "1e15"},
+		{1e-5, 6, "1e-5"},
+		{math.NaN(), 0, ""},
+		{math.Inf(1), 0, ""},
+		{math.Inf(-1), 0, ""},
+		{0, 19, ""},
 	}
 	for _, tt := range floatTests {
 		f, _ := AppendFloat([]byte{}, tt.f, tt.prec)
 		assert.Equal(t, tt.expected, string(f), "AppendFloat must give expected result with "+strconv.FormatFloat(tt.f, 'f', -1, 64))
 	}
+
+	b := make([]byte, 0, 22)
+	AppendFloat(b, 12.34, -1)
+	assert.Equal(t, "12.34", string(b[:5]), "AppendFloat must give expected result in buffer")
 }
 
 ////////////////////////////////////////////////////////////////
 
-func TestAppendFloatStress(t *testing.T) {
+func TestAppendFloatRandom(t *testing.T) {
+	N := int(1e6)
+	if testing.Short() {
+		N = 0
+	}
 	r := rand.New(rand.NewSource(99))
-	prec := 10
-	for i := 0; i < 0; i++ {
+	//prec := 10
+	for i := 0; i < N; i++ {
 		f := r.ExpFloat64()
-		f = math.Floor(f*float64(prec)) / float64(prec)
+		//f = math.Floor(f*float64(prec)) / float64(prec)
 
-		b, _ := AppendFloat([]byte{}, f, prec)
+		b, _ := AppendFloat([]byte{}, f, -1)
 		f2, _ := strconv.ParseFloat(string(b), 64)
-		if f != f2 {
+		if math.Abs(f-f2) > 1e-6 {
 			fmt.Println("Bad:", f, "!=", f2, "in", string(b))
 		}
 	}

@@ -78,19 +78,39 @@ func ParseFloat(b []byte) (float64, bool) {
 	return f * math.Pow10(int(expExp)), true
 }
 
+const log2 = 0.301029995
+const int64maxlen = 19
+
+func float64exp(f float64) int {
+	exp2 := 0
+	if f != 0.0 {
+		x := math.Float64bits(f)
+		exp2 = int(x>>(64-11-1))&0x7FF - 1023 + 1
+	}
+	exp10 := float64(exp2) * log2
+	if exp10 < 0 {
+		exp10 -= 1.0
+	}
+	return int(exp10)
+}
+
 func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		return b, false
+	} else if prec >= int64maxlen {
+		return b, false
+	}
+
 	neg := false
 	if f < 0.0 {
 		f = -f
 		neg = true
 	}
-	if prec >= len(float64pow10) {
-		return b, false
+	if prec == -1 {
+		prec = int64maxlen - 1
 	}
-	f *= float64pow10[prec]
-	if f >= float64(math.MaxInt64) {
-		return b, false
-	}
+	prec -= float64exp(f) // number of digits in front of the dot
+	f *= math.Pow10(prec)
 
 	// calculate mantissa and exponent
 	mant := int64(f)
@@ -103,13 +123,17 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 	// expLen is zero for positive exponents, because positive exponents are determined later on in the big conversion loop
 	exp := 0
 	expLen := 0
-	if mantExp < -3 {
-		exp = mantExp
-		mantExp = 0
-		expLen = 3      // e + minus + digit
-		if exp <= -10 { // exp is never lower than -18
-			expLen++
+	if mantExp > 0 {
+		// positive exponent is determined in the loop below
+		// but if we initially decreased the exponent to fit in an integer, we can't set the new exponent in the loop alone,
+		// since the number of zeros at the end determines the positive exponent in the loop, and we just artificially lost zeros
+		if prec < 0 {
+			exp = mantExp
 		}
+		expLen = 1 + LenInt(int64(exp)) // e + digits
+	} else if mantExp < -3 {
+		exp = mantExp
+		expLen = 2 + LenInt(int64(exp)) // e + minus + digits
 	} else if mantExp < -1 {
 		mantLen += -mantExp - 1 // extra zero between dot and first digit
 	}
@@ -136,7 +160,7 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 	// initially print trailing zeros and remove them later on
 	// for example if the first non-zero digit is three positions in front of the dot, it will overwrite the zeros with a positive exponent
 	zero := true
-	last := i + mantLen      // right-most position of digit that is non-zero
+	last := i + mantLen      // right-most position of digit that is non-zero + dot
 	dot := last - prec - exp // position of dot
 	j := last
 	for mant > 0 {
@@ -153,10 +177,10 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 				i = j + 1
 				// decrease negative exponent further to get rid of dot
 				if exp < 0 {
-					relExp := j - dot
-					// getting rid of the dot shouldn't lower exponent to two digits, unless it's already two digits
-					if exp-relExp > -10 || exp <= -10 { // exp is never lower than -18
-						exp -= relExp
+					newExp := exp - (j - dot)
+					// getting rid of the dot shouldn't lower the exponent to more digits (e.g. -9 -> -10)
+					if LenInt(int64(newExp)) == LenInt(int64(exp)) {
+						exp = newExp
 						dot = j
 						j--
 						i--
@@ -173,7 +197,7 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 		mant = newMant
 	}
 
-	if j > dot+1 {
+	if j > dot {
 		// extra zeros behind the dot
 		for j > dot {
 			b[j] = '0'
@@ -187,25 +211,34 @@ func AppendFloat(b []byte, f float64, prec int) ([]byte, bool) {
 	} else if j == dot {
 		// handle 0.1
 		b[j] = '.'
-		j--
 	}
 
 	// exponent
 	if exp != 0 {
-		b[i] = 'e'
-		i++
-		if exp < 0 {
-			b[i] = '-'
+		if exp == 1 {
+			b[i] = '0'
 			i++
-			exp = -exp
-		}
-		if exp >= 10 {
-			b[i+1] = '0' + byte(exp%10)
-			b[i] = '0' + byte(exp/10)
+		} else if exp == 2 {
+			b[i] = '0'
+			b[i+1] = '0'
 			i += 2
 		} else {
-			b[i] = '0' + byte(exp%10)
+			b[i] = 'e'
 			i++
+			if exp < 0 {
+				b[i] = '-'
+				i++
+				exp = -exp
+			}
+			i += LenInt(int64(exp))
+			j := i
+			for exp > 0 {
+				newExp := exp / 10
+				digit := exp - 10*newExp
+				j--
+				b[j] = '0' + byte(digit)
+				exp = newExp
+			}
 		}
 	}
 	return b[:i], true
