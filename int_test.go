@@ -9,24 +9,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertInt(t *testing.T, s string, ei int64) {
-	i, _ := ParseInt([]byte(s))
-	assert.Equal(t, ei, i, "must match integer in "+s)
-}
-
 func TestParseInt(t *testing.T) {
-	assertInt(t, "5", 5)
-	assertInt(t, "99", 99)
-	assertInt(t, "999", 999)
-	assertInt(t, "-5", -5)
-	assertInt(t, "+5", 5)
-	assertInt(t, "9223372036854775807", 9223372036854775807)
-	assertInt(t, "9223372036854775808", 0)
-	assertInt(t, "-9223372036854775807", -9223372036854775807)
-	assertInt(t, "-9223372036854775808", -9223372036854775808)
-	assertInt(t, "-9223372036854775809", 0)
-	assertInt(t, "18446744073709551620", 0)
-	assertInt(t, "a", 0)
+	var intTests = []struct {
+		i        string
+		expected int64
+	}{
+		{"5", 5},
+		{"99", 99},
+		{"999", 999},
+		{"-5", -5},
+		{"+5", 5},
+		{"9223372036854775807", 9223372036854775807},
+		{"9223372036854775808", 0},
+		{"-9223372036854775807", -9223372036854775807},
+		{"-9223372036854775808", -9223372036854775808},
+		{"-9223372036854775809", 0},
+		{"18446744073709551620", 0},
+		{"a", 0},
+	}
+	for _, tt := range floatTests {
+		i, _ := ParseInt([]byte(tt.i))
+		assert.Equal(t, tt.expected, i, "ParseInt must give expected result in "+tt.f)
+	}
 }
 
 func TestLenInt(t *testing.T) {
@@ -62,6 +66,8 @@ func TestLenInt(t *testing.T) {
 		assert.Equal(t, tt.expected, LenInt(tt.number), "LenInt must give expected result in "+strconv.FormatInt(tt.number, 10))
 	}
 }
+
+////////////////////////////////////////////////////////////////
 
 var num []int64
 

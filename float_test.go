@@ -65,6 +65,8 @@ func TestAppendFloat(t *testing.T) {
 	}
 }
 
+////////////////////////////////////////////////////////////////
+
 func TestAppendFloatStress(t *testing.T) {
 	r := rand.New(rand.NewSource(99))
 	prec := 10
