@@ -27,9 +27,9 @@ func TestParseInt(t *testing.T) {
 		{"18446744073709551620", 0},
 		{"a", 0},
 	}
-	for _, tt := range floatTests {
+	for _, tt := range intTests {
 		i, _ := ParseInt([]byte(tt.i))
-		assert.Equal(t, tt.expected, i, "ParseInt must give expected result in "+tt.f)
+		assert.Equal(t, tt.expected, i, "ParseInt must give expected result in "+tt.i)
 	}
 }
 
