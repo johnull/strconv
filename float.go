@@ -53,7 +53,7 @@ func ParseFloat(b []byte) (float64, bool) {
 	expExp := int64(0)
 	if i < len(b) && (b[i] == 'e' || b[i] == 'E') {
 		i++
-		if e, ok := Int(b[i:]); ok {
+		if e, ok := ParseInt(b[i:]); ok {
 			expExp = e
 		}
 	}

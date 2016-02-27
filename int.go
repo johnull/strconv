@@ -4,7 +4,7 @@ import "math"
 
 // Int parses a byte-slice and returns the integer it represents.
 // If an invalid character is encountered, it will stop there.
-func Int(b []byte) (int64, bool) {
+func ParseInt(b []byte) (int64, bool) {
 	neg := false
 	if len(b) > 0 && (b[0] == '+' || b[0] == '-') {
 		neg = b[0] == '-'
