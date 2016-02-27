@@ -10,7 +10,7 @@ import (
 )
 
 func assertInt(t *testing.T, s string, ei int64) {
-	i, _ := Int([]byte(s))
+	i, _ := ParseInt([]byte(s))
 	assert.Equal(t, ei, i, "must match integer in "+s)
 }
 
