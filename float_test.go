@@ -11,7 +11,7 @@ import (
 )
 
 func TestParseFloat(t *testing.T) {
-	var floatTests = []struct {
+	floatTests := []struct {
 		f        string
 		expected float64
 	}{
@@ -35,7 +35,7 @@ func TestParseFloat(t *testing.T) {
 }
 
 func TestAppendFloat(t *testing.T) {
-	var floatTests = []struct {
+	floatTests := []struct {
 		f        float64
 		prec     int
 		expected string

@@ -9,7 +9,7 @@ import (
 )
 
 func TestParseInt(t *testing.T) {
-	var intTests = []struct {
+	intTests := []struct {
 		i        string
 		expected int64
 	}{
@@ -33,7 +33,7 @@ func TestParseInt(t *testing.T) {
 }
 
 func TestLenInt(t *testing.T) {
-	var lenIntTests = []struct {
+	lenIntTests := []struct {
 		number   int64
 		expected int
 	}{
