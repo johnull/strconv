@@ -4,30 +4,32 @@ import "math"
 
 // Int parses a byte-slice and returns the integer it represents.
 // If an invalid character is encountered, it will stop there.
-func ParseInt(b []byte) (int64, bool) {
+func ParseInt(b []byte) (int64, int) {
+	i := 0
 	neg := false
 	if len(b) > 0 && (b[0] == '+' || b[0] == '-') {
 		neg = b[0] == '-'
-		b = b[1:]
+		i++
 	}
 	n := uint64(0)
-	for i := 0; i < len(b); i++ {
+	for i < len(b) {
 		c := b[i]
 		if n > math.MaxUint64/10 {
-			return 0, false
+			return 0, 0
 		} else if c >= '0' && c <= '9' {
 			n *= 10
 			n += uint64(c - '0')
 		} else {
 			break
 		}
+		i++
 	}
 	if !neg && n > uint64(math.MaxInt64) || n > uint64(math.MaxInt64)+1 {
-		return 0, false
+		return 0, 0
 	} else if neg {
-		return -int64(n), true
+		return -int64(n), i
 	}
-	return int64(n), true
+	return int64(n), i
 }
 
 func LenInt(i int64) int {

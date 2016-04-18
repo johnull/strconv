@@ -10,7 +10,7 @@ var float64pow10 = []float64{
 
 // Float parses a byte-slice and returns the float it represents.
 // If an invalid character is encountered, it will stop there.
-func ParseFloat(b []byte) (float64, bool) {
+func ParseFloat(b []byte) (float64, int) {
 	i := 0
 	neg := false
 	if i < len(b) && (b[i] == '+' || b[i] == '-') {
@@ -53,14 +53,15 @@ func ParseFloat(b []byte) (float64, bool) {
 	expExp := int64(0)
 	if i < len(b) && (b[i] == 'e' || b[i] == 'E') {
 		i++
-		if e, ok := ParseInt(b[i:]); ok {
+		if e, expLen := ParseInt(b[i:]); expLen > 0 {
 			expExp = e
+			i += expLen
 		}
 	}
 	exp := expExp - mantExp
 	// copied from strconv/atof.go
 	if exp == 0 {
-		return f, true
+		return f, i
 	} else if exp > 0 && exp <= 15+22 { // int * 10^k
 		// If exponent is big but number of digits is not,
 		// can move a few zeros into the integer part.
@@ -69,13 +70,13 @@ func ParseFloat(b []byte) (float64, bool) {
 			exp = 22
 		}
 		if f <= 1e15 && f >= -1e15 {
-			return f * float64pow10[exp], true
+			return f * float64pow10[exp], i
 		}
 	} else if exp < 0 && exp >= -22 { // int / 10^k
-		return f / float64pow10[-exp], true
+		return f / float64pow10[-exp], i
 	}
 	f *= math.Pow10(int(-mantExp))
-	return f * math.Pow10(int(expExp)), true
+	return f * math.Pow10(int(expExp)), i
 }
 
 const log2 = 0.301029995
