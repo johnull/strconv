@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/tdewolff/test"
 )
 
 func TestParseFloat(t *testing.T) {
@@ -28,8 +28,9 @@ func TestParseFloat(t *testing.T) {
 		// {"4.9406564584124e-308", 4.9406564584124e-308)
 	}
 	for _, tt := range floatTests {
-		f, _ := ParseFloat([]byte(tt.f))
-		assert.Equal(t, tt.expected, f, "ParseFloat must give expected result in "+tt.f)
+		f, n := ParseFloat([]byte(tt.f))
+		test.That(t, n == len(tt.f), "parsed", n, "characters instead for", tt.f)
+		test.That(t, f == tt.expected, "return", tt.expected, "for", tt.f)
 	}
 }
 
@@ -76,12 +77,12 @@ func TestAppendFloat(t *testing.T) {
 	}
 	for _, tt := range floatTests {
 		f, _ := AppendFloat([]byte{}, tt.f, tt.prec)
-		assert.Equal(t, tt.expected, string(f), "AppendFloat must give expected result with "+strconv.FormatFloat(tt.f, 'f', -1, 64))
+		test.String(t, string(f), tt.expected, "for", tt.f)
 	}
 
 	b := make([]byte, 0, 22)
 	AppendFloat(b, 12.34, -1)
-	assert.Equal(t, "12.34", string(b[:5]), "AppendFloat must give expected result in buffer")
+	test.String(t, string(b[:5]), "12.34", "in buffer")
 }
 
 ////////////////////////////////////////////////////////////////

@@ -3,10 +3,9 @@ package strconv // import "github.com/tdewolff/strconv"
 import (
 	"math"
 	"math/rand"
-	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/tdewolff/test"
 )
 
 func TestParseInt(t *testing.T) {
@@ -29,7 +28,7 @@ func TestParseInt(t *testing.T) {
 	}
 	for _, tt := range intTests {
 		i, _ := ParseInt([]byte(tt.i))
-		assert.Equal(t, tt.expected, i, "ParseInt must give expected result in "+tt.i)
+		test.That(t, i == tt.expected, "return", tt.expected, "for", tt.i)
 	}
 }
 
@@ -63,7 +62,7 @@ func TestLenInt(t *testing.T) {
 		{1000000000000000000, 19},
 	}
 	for _, tt := range lenIntTests {
-		assert.Equal(t, tt.expected, LenInt(tt.number), "LenInt must give expected result in "+strconv.FormatInt(tt.number, 10))
+		test.That(t, LenInt(tt.number) == tt.expected, "return", tt.expected, "for", tt.number)
 	}
 }
 
