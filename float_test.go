@@ -74,6 +74,9 @@ func TestAppendFloat(t *testing.T) {
 		{math.Inf(1), 0, ""},
 		{math.Inf(-1), 0, ""},
 		{0, 19, ""},
+		{.01, 1, "0"},
+		{.09, 1, ".1"},
+		{.0009233619772008594, -1, ".0009233619772008594"},
 	}
 	for _, tt := range floatTests {
 		f, _ := AppendFloat([]byte{}, tt.f, tt.prec)
