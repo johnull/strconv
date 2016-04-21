@@ -17,6 +17,7 @@ func ParseFloat(b []byte) (float64, int) {
 		neg = b[i] == '-'
 		i++
 	}
+
 	dot := -1
 	trunk := -1
 	n := uint64(0)
@@ -37,10 +38,12 @@ func ParseFloat(b []byte) (float64, int) {
 			break
 		}
 	}
+
 	f := float64(n)
 	if neg {
 		f = -f
 	}
+
 	mantExp := int64(0)
 	if dot != -1 {
 		if trunk == -1 {
@@ -59,6 +62,7 @@ func ParseFloat(b []byte) (float64, int) {
 		}
 	}
 	exp := expExp - mantExp
+
 	// copied from strconv/atof.go
 	if exp == 0 {
 		return f, i
@@ -80,7 +84,7 @@ func ParseFloat(b []byte) (float64, int) {
 }
 
 const log2 = 0.301029995
-const int64maxlen = 19
+const int64maxlen = 18
 
 func float64exp(f float64) int {
 	exp2 := 0
@@ -88,6 +92,7 @@ func float64exp(f float64) int {
 		x := math.Float64bits(f)
 		exp2 = int(x>>(64-11-1))&0x7FF - 1023 + 1
 	}
+
 	exp10 := float64(exp2) * log2
 	if exp10 < 0 {
 		exp10 -= 1.0
