@@ -1,1 +1,1 @@
-**DEPRECATED: moved to https://github.com/tdewolff/parse/strconv**
+**DEPRECATED: moved to https://github.com/tdewolff/parse**
