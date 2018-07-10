@@ -2,10 +2,7 @@ package strconv // import "github.com/tdewolff/strconv"
 
 import (
 	"math"
-	"math/rand"
 	"testing"
-
-	"github.com/tdewolff/test"
 )
 
 func TestParseInt(t *testing.T) {
@@ -28,7 +25,7 @@ func TestParseInt(t *testing.T) {
 	}
 	for _, tt := range intTests {
 		i, _ := ParseInt([]byte(tt.i))
-		test.That(t, i == tt.expected, "return", tt.expected, "for", tt.i)
+		That(t, i == tt.expected, "return", tt.expected, "for", tt.i)
 	}
 }
 
@@ -62,7 +59,7 @@ func TestLenInt(t *testing.T) {
 		{1000000000000000000, 19},
 	}
 	for _, tt := range lenIntTests {
-		test.That(t, LenInt(tt.number) == tt.expected, "return", tt.expected, "for", tt.number)
+		That(t, LenInt(tt.number) == tt.expected, "return", tt.expected, "for", tt.number)
 	}
 }
 
@@ -70,11 +67,6 @@ func TestLenInt(t *testing.T) {
 
 var num []int64
 
-func TestMain(t *testing.T) {
-	for j := 0; j < 1000; j++ {
-		num = append(num, rand.Int63n(1000))
-	}
-}
 
 func BenchmarkLenIntLog(b *testing.B) {
 	n := 0

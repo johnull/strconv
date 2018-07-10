@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/tdewolff/test"
 )
 
 func TestParseFloat(t *testing.T) {
@@ -29,8 +28,8 @@ func TestParseFloat(t *testing.T) {
 	}
 	for _, tt := range floatTests {
 		f, n := ParseFloat([]byte(tt.f))
-		test.That(t, n == len(tt.f), "parsed", n, "characters instead for", tt.f)
-		test.That(t, f == tt.expected, "return", tt.expected, "for", tt.f)
+		That(t, n == len(tt.f), "parsed", n, "characters instead for", tt.f)
+		That(t, f == tt.expected, "return", tt.expected, "for", tt.f)
 	}
 }
 
@@ -78,12 +77,12 @@ func TestAppendFloat(t *testing.T) {
 	}
 	for _, tt := range floatTests {
 		f, _ := AppendFloat([]byte{}, tt.f, tt.prec)
-		test.String(t, string(f), tt.expected, "for", tt.f)
+		String(t, string(f), tt.expected, "for", tt.f)
 	}
 
 	b := make([]byte, 0, 22)
 	AppendFloat(b, 12.34, -1)
-	test.String(t, string(b[:5]), "12.34", "in buffer")
+	String(t, string(b[:5]), "12.34", "in buffer")
 }
 
 ////////////////////////////////////////////////////////////////
