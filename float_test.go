@@ -1,4 +1,4 @@
-package strconv // import "github.com/tdewolff/strconv"
+package strconv
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"strconv"
 	"testing"
-
 )
 
 func TestParseFloat(t *testing.T) {

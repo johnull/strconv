@@ -1,4 +1,4 @@
-package strconv // import "github.com/tdewolff/strconv"
+package strconv
 
 import (
 	"math"
@@ -66,7 +66,6 @@ func TestLenInt(t *testing.T) {
 ////////////////////////////////////////////////////////////////
 
 var num []int64
-
 
 func BenchmarkLenIntLog(b *testing.B) {
 	n := 0
